@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ¿Qué como hoy?
 
-## Getting Started
+Comidas para una persona, con poca fricción. Next.js (App Router) + TypeScript + Tailwind.
 
-First, run the development server:
+La IA puede ser:
+
+- **Gemini** (plan gratuito de Google AI Studio): se usa cuando hay `GEMINI_API_KEY`. Es lo que corre en Vercel.
+- **Claude Code CLI** (`claude -p`, tu sesión local): se usa cuando no hay `GEMINI_API_KEY`.
+
+Se puede forzar con `AI_PROVIDER=gemini` o `AI_PROVIDER=claude-cli`.
+
+La memoria (me sirve, rechazos, comidas recientes, notas) vive en el navegador de cada persona (`localStorage`). No hay base de datos.
+
+## Correr en tu compu
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Con Claude Code instalado y la sesión iniciada no hace falta nada más. Opcional en `.env.local`:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `CLAUDE_MODEL`: modelo para `claude -p` (por ejemplo `haiku`).
+- `CLAUDE_BIN`: ruta al ejecutable de `claude`, si no lo encuentra solo.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Publicar gratis en Vercel con Gemini
 
-## Learn More
+1. Creá una clave en https://aistudio.google.com/apikey. **No actives la facturación** en ese proyecto de Google: así nunca te puede cobrar. Si se agota el cupo gratuito, la app avisa y hay que esperar.
+2. Subí el repo a GitHub.
+3. En https://vercel.com, con el plan Hobby (gratis), importá el repo con "Add New → Project".
+4. En "Environment Variables" agregá `GEMINI_API_KEY` con tu clave. Opcional: `GEMINI_MODEL` (por defecto `gemini-3.5-flash-lite`).
+5. Deploy. Cada `git push` vuelve a publicar.
 
-To learn more about Next.js, take a look at the following resources:
+Importante: en el plan gratuito, Google puede usar lo que se le envía para mejorar sus productos. No pongas datos personales en las notas.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Estructura
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `app/page.tsx`: pantalla principal.
+- `app/api/meal/route.ts`: arma el prompt con la memoria que manda el navegador y valida la respuesta con Zod.
+- `lib/ai.ts`: elige el motor (Gemini o Claude Code).
+- `lib/gemini.ts`: llamada a Gemini con JSON Schema (`@google/genai`).
+- `lib/claudeCli.ts`: ejecuta `claude -p` con `child_process.spawn`.
+- `lib/memory.ts` y `lib/memoryStore.ts`: lógica de feedback y guardado en el navegador.
+- `app/api/memory/route.ts`: sólo lectura, importa una vez el viejo `data/memory.json` si existe.
+- `lib/types.ts`: schemas compartidos.

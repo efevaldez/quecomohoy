@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# memoria personal de SoloCocina
+/data/memory.json
+/data/*.tmp
